@@ -17,8 +17,10 @@ You can install the package from GitHub with:
 
 
 ``` r
-remotes::install_github("SebSchroen/assetpriceR")
+devtools::install_github("SebSchroen/assetpriceR"
+                         ,ref="main"
+                         ,auth_token = "tokenstring")
 ```
-
+To receive the token, please contact me.
 
 
