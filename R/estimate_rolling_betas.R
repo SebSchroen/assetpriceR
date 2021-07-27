@@ -19,8 +19,8 @@ estimate_rolling_betas <- function(data,
                                    freq = "monthly") {
 
 
-
-
+mf <- model.frame(formula = regmodel, data = x)
+ret <- model.response(mf)
 
 
 
@@ -60,7 +60,7 @@ estimate_rolling_betas <- function(data,
 
 
     output <- data %>%
-      drop_na(MRETRF) %>%
+      drop_na(ret) %>%
       arrange(KYPERMNO, MCALDT) %>%
       group_by(KYPERMNO) %>%
       nest()%>%
