@@ -31,7 +31,7 @@ if (freq == "daily") {
           frenchdata::download_french_data("Momentum Factor (Mom)")$subsets$data[[2]],
           by = "date") %>%
         mutate_at(vars(-date), function(x) x/100) %>%
-        rename(YYYYMM = date,
+        rename(YYYY = date,
                MKTRF = `Mkt-RF`,
                MOM = Mom)
 
@@ -41,7 +41,7 @@ if (freq == "daily") {
           frenchdata::download_french_data("Momentum Factor (Mom)")$subsets$data[[1]],
           by = "date") %>%
         mutate_at(vars(-date), function(x) x/100) %>%
-        rename(YYYY = date,
+        rename(YYYYMM = date,
                MKTRF = `Mkt-RF`,
                MOM = Mom)
 
