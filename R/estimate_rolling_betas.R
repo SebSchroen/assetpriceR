@@ -4,7 +4,7 @@
 #' @param window    A `dbl` value for the estimation window in months in {1,3,6,12,24,...,60}.
 #' @param freq      Either "monthly" (default) or "daily" for the input frequency of the data.
 #' @return A tibble with the estimated betas for all input factors on a monthly basis
-#' @import dplyr lubridate
+#' @import dplyr lubridate roll
 #' @export
 #' @description Estimate rolling window betas in the cross section of stocks.
 #' @examples
@@ -19,9 +19,10 @@ estimate_rolling_betas <- function(data,
                                    freq = "monthly") {
 
 
-ret <- model.response(model.frame(formula = regmodel, data = data))
 
 
+# Thats not very smart, fix that:
+  ret <- colnames(model.frame(formula = regmodel, data = data))[1]
 
  auxroll <- function(x) {
    #x <- na.omit(data)

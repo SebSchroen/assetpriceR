@@ -23,7 +23,39 @@ univariate_sort <- function(data, var, ret = MRETRF,
                                             price_filter = FALSE,
                                             min_price = 5){
 
-#browser()
+##########Aux functions:
+  get_breakpoints_functions <- function(var, n_portfolios = 10) {
+    # Get relevant percentiles
+    percentiles <- seq(0, 1, length.out = (n_portfolios + 1))
+    percentiles <- percentiles[percentiles > 0 & percentiles < 1]
+
+    # Construct set of named quantile functions
+    percentiles_names <- map_chr(percentiles, ~str_c(rlang::quo_text(enquo(var)), "_q", .x*100))
+    percentiles_funs <- map(percentiles, ~partial(quantile, probs = .x, na.rm = TRUE)) %>%
+      set_names(nm = percentiles_names)
+
+    return(percentiles_funs)
+
+  }
+
+
+  get_portfolio <- function(x, breakpoints) {
+    portfolio <- as.integer(1 + findInterval(x, unlist(breakpoints)))
+
+    return(portfolio)
+  }
+
+  weighted_mean <- function(x, w, ..., na.rm = FALSE){
+    if(na.rm){
+      x1 <- x[!is.na(x) & !is.na(w)]
+      w <- w[!is.na(x) & !is.na(w)]
+      x <- x1
+    }
+    weighted.mean(x, w, ..., na.rm = FALSE)
+  }
+##########################
+
+  #browser()
 
   # Keep only observations where sorting variable is defined, apply price filter
 
@@ -54,6 +86,9 @@ univariate_sort <- function(data, var, ret = MRETRF,
   }
 
   # Compute quantiles
+
+
+
 
   var_funs <- get_breakpoints_functions({{var}}, n_portfolios)
 
