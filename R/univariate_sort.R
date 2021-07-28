@@ -127,7 +127,8 @@ univariate_sort <- function(data, var, ret = MRETRF,
     pivot_wider(names_from = portfolio, values_from = c(RET_EW, RET_VW))  %>%
     mutate(RET_EW = .[[3]] - .[[2]],
            RET_VW = .[[5]] - .[[4]],
-           portfolio = paste0(n_portfolios, "-1")) %>%
+           portfolio = paste0(n_portfolios, "-1"),
+           YYYYMM = 100*lubridate::year(MCALDT) + lubridate::month(MCALDT)) %>%
     select(portfolio, MCALDT, RET_EW, RET_VW)
 
   # Combine everything
