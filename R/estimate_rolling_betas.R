@@ -56,6 +56,7 @@ estimate_rolling_betas <- function(data,
     if (window == 12) {min_obs <- 10}
     if (window == 24) {min_obs <- 20}
     if (window == 36) {min_obs <- 24}
+    if (window == 48) {min_obs <- 24}
     if (window == 60) {min_obs <- 24}
 
 
