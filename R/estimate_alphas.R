@@ -3,6 +3,7 @@
 #' @param ret  Return variable, e.g. `RET_VW` for value-weighted returns, as returned by `univariate_sort`.
 #' @param n_portfolios       The number of portfolios in the input data, default is 10.
 #' @param lag      Lag for the Newey West adjustment of the standard errors.
+#' @param datevar  Date variable, usually MCALDT with monthly data, use YYYYQ for quarterly data.
 #' @return A tibble with returns and alphas for the sorted portfolios, ready to print with `kable`.
 #' @import dplyr lubridate broom sandwich
 #' @export
@@ -14,14 +15,14 @@
 
 
 
-estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6) {
+estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6, datevar = MCALDT ) {
 
 
 
     compute_alpha <- function(x, formula) {
 
 
-      x %>% select(portfolio, MCALDT, ret = {{ret}}, MKTRF, SMB, HML, RMW, CMA, MOM) %>% group_by(portfolio)%>%
+      x %>% select(portfolio, {{datevar}}, ret = {{ret}}, MKTRF, SMB, HML, RMW, CMA, MOM) %>% group_by(portfolio)%>%
         nest()  %>%
         mutate(model = map(data, ~lm(formula, data = .)), nw_stderror = map_dbl(model, ~sqrt(diag(sandwich::NeweyWest(., lag = lag))[1])),
                model = map(model, broom::tidy)) %>% unnest(model) %>%
@@ -30,7 +31,7 @@ estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6) {
                                                            nw_tstat) %>% t()
     }
 
-    average_ret <- data %>% select(portfolio, MCALDT, ret = {{ret}} ) %>% group_by(portfolio) %>% nest(data = c(MCALDT, ret)) %>%
+    average_ret <- data %>% select(portfolio, {{datevar}}, ret = {{ret}} ) %>% group_by(portfolio) %>% nest(data = c({{datevar}}, ret)) %>%
       mutate(model = map(data, ~lm("ret ~ 1", data = .)),
              nw_stderror = map_dbl(model, ~sqrt(diag(sandwich::NeweyWest(., lag = lag)))), model = map(model, broom::tidy)) %>%
       unnest(model) %>% ungroup() %>% mutate(nw_tstat = estimate/nw_stderror) %>%

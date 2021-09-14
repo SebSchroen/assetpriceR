@@ -1,5 +1,5 @@
 #' Perform univariate sorts and compute returns for each portfolio.
-#' @param data              A data frame with monthly excess returns for each KYPERMNO and the sorting variable `var`.
+#' @param data              A data frame with quarterly excess returns for each KYPERMNO and the sorting variable `var`.
 #' @param var               A variable to sort by.
 #' @param ret               The (excess) return variable, default is MRETRF as MRET - RF.
 #' @param n_portfolios      The number of portfolios to form, default is 10.
@@ -12,12 +12,12 @@
 #' @description Sort stocks into `n_portfolios` portfolios and compute value-weighted and equal-weighted monthly excess returns.
 #' @examples
 #' \dontrun{
-#' size_deciles <- univariate_sort(sfz_mon, MTCAP, MRETRF)
+#' size_deciles <- univariate_sort_quarterly(sfz_mon, QTRTCAP, QTRRETRF)
 #' }
 
 
 
-univariate_sort <- function(data, var, ret = MRETRF,
+univariate_sort_quarterly <- function(data, var, ret = QTRRET,
                                             n_portfolios = 10,
                                             nyse_breakpoints = FALSE,
                                             price_filter = FALSE,
@@ -30,7 +30,7 @@ univariate_sort <- function(data, var, ret = MRETRF,
     percentiles <- percentiles[percentiles > 0 & percentiles < 1]
 
     # Construct set of named quantile functions
-    percentiles_names <- map_chr(percentiles, ~str_c(rlang:::quo_text(enquo(var)), "_q", .x*100))
+    percentiles_names <- purrr::map_chr(percentiles, ~str_c(rlang::quo_text(enquo(var)), "_q", .x*100))
     percentiles_funs <- map(percentiles, ~partial(quantile, probs = .x, na.rm = TRUE)) %>%
       set_names(nm = percentiles_names)
 
@@ -63,14 +63,14 @@ univariate_sort <- function(data, var, ret = MRETRF,
   data <- data %>%
     filter(!is.na({{var}})) %>%
     group_by(KYPERMNO) %>%
-    mutate(LAG_MPRC = lag(MPRC)) %>%
-    filter(abs(LAG_MPRC) >= min_price) %>%
-    select(-LAG_MPRC, MPRC) %>%
+    mutate(LAG_QTRPRC = lag(QTRPRC)) %>%
+    filter(abs(LAG_QTRPRC) >= min_price) %>%
+    select(-LAG_QTRPRC, QTRPRC) %>%
     ungroup()
   } else {
   data <- data %>%
       filter(!is.na({{var}})) %>%
-      select(-MPRC)
+      select(-QTRPRC)
   }
 
 
@@ -79,10 +79,10 @@ univariate_sort <- function(data, var, ret = MRETRF,
   if (nyse_breakpoints == TRUE) {
     data_quantiles <- data %>%
       filter(PRIMEXCHG == "N") %>%
-      select(MCALDT, {{var}})
+      select(YYYYQ, {{var}})
   } else {
     data_quantiles <- data %>%
-      select(MCALDT, {{var}})
+      select(YYYYQ, {{var}})
   }
 
   # Compute quantiles
@@ -95,14 +95,14 @@ univariate_sort <- function(data, var, ret = MRETRF,
 
   var_funs <- get_breakpoints_functions({{var}}, n_portfolios)
   quantiles <- data_quantiles %>%
-    group_by(MCALDT) %>%
+    group_by(YYYYQ) %>%
     summarize_at(vars({{var}}), lst(!!!var_funs)) %>%
-    group_by(MCALDT) %>%
-    nest(quantiles = -MCALDT)
+    group_by(YYYYQ) %>%
+    nest(quantiles = -YYYYQ)
 
   # Independently sort all stocks into portfolios based on breakpoints
   portfolios <- data %>%
-    left_join(quantiles, by = "MCALDT") %>%
+    left_join(quantiles, by = "YYYYQ") %>%
     mutate(portfolio = map2_dbl({{var}}, quantiles, get_portfolio)) %>%
     select(-quantiles)
 
@@ -110,26 +110,25 @@ univariate_sort <- function(data, var, ret = MRETRF,
   # Compute average portfolio characteristics
   portfolios_ts <- portfolios %>%
     group_by(KYPERMNO) %>%
-    mutate(LAG_MTCAP = lag(MTCAP),
+    mutate(LAG_QTRCAP = lag(QTRCAP),
            LAG_RANK = lag(portfolio)) %>%
-    drop_na(LAG_RANK, LAG_MTCAP) %>%
-    group_by(LAG_RANK, MCALDT) %>%
+    drop_na(LAG_RANK, LAG_QTRCAP) %>%
+    group_by(LAG_RANK, YYYYQ) %>%
     summarize(RET_EW = mean({{ret}}, na.rm = TRUE),
-              RET_VW = weighted_mean({{ret}}, LAG_MTCAP, na.rm = TRUE)) %>%
+              RET_VW = weighted_mean({{ret}}, LAG_QTRCAP, na.rm = TRUE)) %>%
     ungroup() %>%
     rename(portfolio = LAG_RANK)
 
 
   # Construct long-short portfolio
   portfolios_ts_ls <- portfolios_ts %>%
-    select(portfolio, MCALDT, RET_EW, RET_VW) %>%
+    select(portfolio, YYYYQ, RET_EW, RET_VW) %>%
     filter(portfolio %in% c(max(portfolio), min(portfolio))) %>%
     pivot_wider(names_from = portfolio, values_from = c(RET_EW, RET_VW))  %>%
     mutate(RET_EW = .[[3]] - .[[2]],
            RET_VW = .[[5]] - .[[4]],
-           portfolio = paste0(n_portfolios, "-1"),
-           YYYYMM = 100*lubridate::year(MCALDT) + lubridate::month(MCALDT)) %>%
-    select(portfolio, MCALDT, RET_EW, RET_VW,YYYYMM)
+           portfolio = paste0(n_portfolios, "-1")) %>%
+    select(portfolio, YYYYQ, RET_EW, RET_VW)
 
   # Combine everything
   out <- portfolios_ts %>%

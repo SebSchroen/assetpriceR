@@ -4,7 +4,7 @@
 \alias{estimate_alphas}
 \title{Estimates factor model alphas on sorted portfolios.}
 \usage{
-estimate_alphas(data, ret, n_portfolios = 10, lag = 6)
+estimate_alphas(data, ret, n_portfolios = 10, lag = 6, datevar = MCALDT)
 }
 \arguments{
 \item{data}{A data frame with returns of sorted portfolios, e.g. the output of the \code{univariate_sort} function. The data must contain the FF6 factors as downloaded by the \code{get_ff_factors} function.}
@@ -14,6 +14,8 @@ estimate_alphas(data, ret, n_portfolios = 10, lag = 6)
 \item{n_portfolios}{The number of portfolios in the input data, default is 10.}
 
 \item{lag}{Lag for the Newey West adjustment of the standard errors.}
+
+\item{datevar}{Date variable, usually MCALDT with monthly data, use YYYYQ for quarterly data.}
 }
 \value{
 A tibble with returns and alphas for the sorted portfolios, ready to print with \code{kable}.

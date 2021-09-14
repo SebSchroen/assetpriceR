@@ -35,7 +35,28 @@ if (freq == "daily") {
                MKTRF = `Mkt-RF`,
                MOM = Mom)
 
-    } else {
+    }
+  else if (freq == "quarterly") {
+    factors <- frenchdata::download_french_data("Fama/French 5 Factors (2x3)")$subsets$data[[1]] %>%
+      left_join(
+        frenchdata::download_french_data("Momentum Factor (Mom)")$subsets$data[[1]],
+        by = "date") %>%
+      mutate_at(vars(-date), function(x) x/100) %>%
+      rename(YYYYMM = date,
+             MKTRF = `Mkt-RF`,
+             MOM = Mom) %>%
+      mutate(YYYY = round(YYYYMM/100,0),
+             MM = as.numeric(substr(YYYYMM,5,6)),
+             YYYYQ = YYYY*10+ceiling(MM/3)) %>%
+      select(-YYYY,-MM,-YYYYMM) %>%
+      mutate_at(vars(-YYYYQ), function(x) log(1+x)) %>%
+      group_by(YYYYQ) %>%
+      summarise_all(sum) %>%
+      mutate_at(vars(-YYYYQ),function(x) exp(x)-1)
+
+
+
+  }  else {
       factors <- frenchdata::download_french_data("Fama/French 5 Factors (2x3)")$subsets$data[[1]] %>%
         left_join(
           frenchdata::download_french_data("Momentum Factor (Mom)")$subsets$data[[1]],
