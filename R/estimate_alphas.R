@@ -22,7 +22,8 @@ estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6, datevar = MCA
     compute_alpha <- function(x, formula) {
 
 
-      x %>% select(portfolio, {{datevar}}, ret = {{ret}}, MKTRF, SMB, HML, RMW, CMA, MOM) %>% group_by(portfolio)%>%
+      x %>% select(portfolio, {{datevar}}, ret = {{ret}}, MKTRF, SMB, HML, RMW, CMA, MOM,
+                   MKT, ME, IA, ROE, EG) %>% group_by(portfolio)%>%
         nest()  %>%
         mutate(model = map(data, ~lm(formula, data = .)), nw_stderror = map_dbl(model, ~sqrt(diag(sandwich::NeweyWest(., lag = lag, prewhite = FALSE))[1])),
                model = map(model, broom::tidy)) %>% unnest(model) %>%
