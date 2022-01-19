@@ -43,14 +43,15 @@ estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6, datevar = MCA
     ff3_alpha <- compute_alpha(data, "ret ~ 1 + MKTRF + SMB + HML")
     ff5_alpha <- compute_alpha(data, "ret ~ 1 + MKTRF + SMB + HML + RMW + CMA")
     ff6_alpha <- compute_alpha(data, "ret ~ 1 + MKTRF + SMB + HML + RMW + CMA + MOM")
-    q_alpha <-   compute_alpha(data, "ret ~ 1 + MKT + ME + IA + ROE + EG")
+    q4_alpha <-   compute_alpha(data, "ret ~ 1 + MKT + ME + IA + ROE")
+    q5_alpha <-   compute_alpha(data, "ret ~ 1 + MKT + ME + IA + ROE + EG")
     out <- rbind(average_ret, capm_alpha, ff3_alpha, ff5_alpha,
-                 ff6_alpha, q_alpha)
+                 ff6_alpha, q4_alpha, q5_alpha)
     colnames(out) <- c(as.character(seq(1, n_portfolios, 1)),
                        str_c(n_portfolios, "-1"))
     rownames(out) <- c("Excess Return", "t-Stat", "CAPM Alpha",
                        "t-Stat", "FF3 Alpha", "t-Stat", "FF5 Alpha", "t-Stat",
-                       "FF6 Alpha", "t-Stat", "q-5 Alpha, ", "t-Stat")
+                       "FF6 Alpha", "t-Stat","q-4 Alpha, ", "t-Stat", "q-5 Alpha, ", "t-Stat")
     return(out)
 
 }
