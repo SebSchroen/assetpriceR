@@ -24,7 +24,7 @@ estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6, datevar = MCA
 
       x %>% select(portfolio, {{datevar}}, ret = {{ret}}, MKTRF, SMB, HML, RMW, CMA, MOM) %>% group_by(portfolio)%>%
         nest()  %>%
-        mutate(model = map(data, ~lm(formula, data = .)), nw_stderror = map_dbl(model, ~sqrt(diag(sandwich::NeweyWest(., lag = lag))[1])),
+        mutate(model = map(data, ~lm(formula, data = .)), nw_stderror = map_dbl(model, ~sqrt(diag(sandwich::NeweyWest(., lag = lag, prewhite = FALSE))[1])),
                model = map(model, broom::tidy)) %>% unnest(model) %>%
         ungroup() %>% filter(term == "(Intercept)") %>%
         mutate(nw_tstat = estimate/nw_stderror) %>% select(estimate,
@@ -33,7 +33,7 @@ estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6, datevar = MCA
 
     average_ret <- data %>% select(portfolio, {{datevar}}, ret = {{ret}} ) %>% group_by(portfolio) %>% nest(data = c({{datevar}}, ret)) %>%
       mutate(model = map(data, ~lm("ret ~ 1", data = .)),
-             nw_stderror = map_dbl(model, ~sqrt(diag(sandwich::NeweyWest(., lag = lag)))), model = map(model, broom::tidy)) %>%
+             nw_stderror = map_dbl(model, ~sqrt(diag(sandwich::NeweyWest(., lag = lag, prewhite = FALSE)))), model = map(model, broom::tidy)) %>%
       unnest(model) %>% ungroup() %>% mutate(nw_tstat = estimate/nw_stderror) %>%
       select(estimate, nw_tstat) %>% t()
 
@@ -42,13 +42,14 @@ estimate_alphas <- function(data, ret, n_portfolios = 10, lag = 6, datevar = MCA
     ff3_alpha <- compute_alpha(data, "ret ~ 1 + MKTRF + SMB + HML")
     ff5_alpha <- compute_alpha(data, "ret ~ 1 + MKTRF + SMB + HML + RMW + CMA")
     ff6_alpha <- compute_alpha(data, "ret ~ 1 + MKTRF + SMB + HML + RMW + CMA + MOM")
+    q_alpha <-   compute_alpha(data, "ret ~ 1 + MKT + ME + IA + ROE + EG")
     out <- rbind(average_ret, capm_alpha, ff3_alpha, ff5_alpha,
-                 ff6_alpha)
+                 ff6_alpha, q_alpha)
     colnames(out) <- c(as.character(seq(1, n_portfolios, 1)),
                        str_c(n_portfolios, "-1"))
     rownames(out) <- c("Excess Return", "t-Stat", "CAPM Alpha",
                        "t-Stat", "FF3 Alpha", "t-Stat", "FF5 Alpha", "t-Stat",
-                       "FF6 Alpha", "t-Stat")
+                       "FF6 Alpha", "t-Stat", "q-5 Alpha, ", "t-Stat")
     return(out)
 
 }

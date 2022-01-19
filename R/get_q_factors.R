@@ -20,7 +20,7 @@ if (freq == "daily") {
     mutate_at(vars(-DATE), function(x) x/100) %>%
     mutate(CALDT = lubridate::ymd(DATE)) %>%
     dplyr::select(-DATE) %>%
-    rename_at(vars(-CALDT,-R_F), ~str_remove(.,"R_")) %>%
+    rename_at(vars(-CALDT,-R_F), ~stringr::str_remove(.,"R_")) %>%
     rename(RF = R_F) %>%
     dplyr::select(-RF)
 
@@ -30,7 +30,7 @@ if (freq == "daily") {
         mutate(YYYY =year) %>%
         dplyr::select(-c(year)) %>%
         mutate_at(vars(-YYYY), function(x) x/100) %>%
-        rename_at(vars(-YYYY,-R_F), ~str_remove(.,"R_")) %>%
+        rename_at(vars(-YYYY,-R_F), ~stringr::str_remove(.,"R_")) %>%
         rename(RF = R_F) %>%
         dplyr::select(YYYY, MKT, ME, IA, ROE, EG)
     }
@@ -40,7 +40,7 @@ if (freq == "daily") {
       mutate(YYYYQ = 100*year + quarter) %>%
       dplyr::select(-c(year, quarter)) %>%
       mutate_at(vars(-YYYYQ), function(x) x/100) %>%
-      rename_at(vars(-YYYYQ,-R_F), ~str_remove(.,"R_")) %>%
+      rename_at(vars(-YYYYQ,-R_F), ~stringr::str_remove(.,"R_")) %>%
       rename(RF = R_F) %>%
       dplyr::select(YYYYQ, MKT, ME, IA, ROE, EG)
 
@@ -52,7 +52,7 @@ if (freq == "daily") {
       mutate(YYYYMM = 100*year + month) %>%
       dplyr::select(-c(year, month)) %>%
       mutate_at(vars(-YYYYMM), function(x) x/100) %>%
-      rename_at(vars(-YYYYMM,-R_F), ~str_remove(.,"R_")) %>%
+      rename_at(vars(-YYYYMM,-R_F), ~stringr::str_remove(.,"R_")) %>%
       rename(RF = R_F) %>%
       dplyr::select(YYYYMM, MKT, ME, IA, ROE, EG)
 
