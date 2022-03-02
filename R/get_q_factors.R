@@ -15,7 +15,7 @@
 get_q_factors <- function(freq = "monthly") {
 
 if (freq == "daily") {
-  factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_daily_2020.csv",
+  factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_daily_2021.csv",
                                               show_col_types = FALSE) %>%
     mutate_at(vars(-DATE), function(x) x/100) %>%
     mutate(CALDT = lubridate::ymd(DATE)) %>%
@@ -25,7 +25,7 @@ if (freq == "daily") {
     dplyr::select(-RF)
 
     } else if (freq == "annual") {
-      factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_annual_2020.csv",
+      factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_annual_2021.csv",
                                  show_col_types = FALSE) %>%
         mutate(YYYY =year) %>%
         dplyr::select(-c(year)) %>%
@@ -35,7 +35,7 @@ if (freq == "daily") {
         dplyr::select(YYYY, MKT, ME, IA, ROE, EG)
     }
   else if (freq == "quarterly") {
-    factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_quarterly_2020.csv",
+    factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_quarterly_2021.csv",
                                show_col_types = FALSE) %>%
       mutate(YYYYQ = 100*year + quarter) %>%
       dplyr::select(-c(year, quarter)) %>%
@@ -47,7 +47,7 @@ if (freq == "daily") {
 
 
   }  else {
-    factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_monthly_2020.csv",
+    factors <- readr::read_csv("http://global-q.org/uploads/1/2/2/6/122679606/q5_factors_monthly_2021.csv",
                                show_col_types = FALSE) %>%
       mutate(YYYYMM = 100*year + month) %>%
       dplyr::select(-c(year, month)) %>%
