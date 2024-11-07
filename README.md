@@ -21,6 +21,6 @@ devtools::install_github("SebSchroen/assetpriceR"
                          ,ref="main"
                          ,auth_token = "tokenstring")
 ```
-To receive the token, please contact me.
+
 
 
